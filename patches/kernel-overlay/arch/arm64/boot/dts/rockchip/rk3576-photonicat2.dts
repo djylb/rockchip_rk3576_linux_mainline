@@ -176,7 +176,7 @@
 		     &eth0m1_rgmii_bus
 		     &ethm1_clk0_25m_out>;
 
-	tx_delay = <0x21>;
+	tx_delay = <0x20>;
 	/* rx_delay = <0x3f>; */
 
 	phy-handle = <&rgmii_phy0>;
@@ -212,7 +212,7 @@
 };
 
 &hdmi {
-	enable-gpios = <&gpio2 RK_PB0 GPIO_ACTIVE_HIGH>;
+	enable-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
@@ -590,19 +590,7 @@
 };
 
 &i2c2 {
-	status = "okay";
-
-	hym8563: rtc@51 {
-		compatible = "haoyu,hym8563";
-		reg = <0x51>;
-		clock-output-names = "hym8563";
-		interrupt-parent = <&gpio0>;
-		interrupts = <RK_PB0 IRQ_TYPE_LEVEL_LOW>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&hym8563_int>;
-		wakeup-source;
-		#clock-cells = <0>;
-	};
+	status = "disabled";
 };
 
 &mdio0 {
@@ -624,24 +612,9 @@
 };
 
 &pinctrl {
-	headphone {
-		hp_det: hp-det {
-			rockchip,pins = <0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-	};
-
 	hym8563 {
 		hym8563_int: hym8563-int {
 			rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-	};
-
-	leds {
-		led_rgb_r: led-red-en {
-			rockchip,pins = <4 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-		led_rgb_g: led-green-en {
-			rockchip,pins = <4 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
@@ -704,7 +677,7 @@
 &pcie1 {
 	reset-gpios = <&gpio4 RK_PB2 0>;
 	vpcie3v3-supply = <&vcc_3v3_pcie1>;
-	status = "okay";
+	status = "disabled";
 };
 
 &u2phy0 {
@@ -716,14 +689,13 @@
 };
 
 &usb_drd0_dwc3 {
-	dr_mode = "host";
 	status = "okay";
-        snps,usb2-lpm-disable;
+	dr_mode = "host";
 };
 
 &usb_drd1_dwc3 {
-	dr_mode = "host";
 	status = "okay";
+	dr_mode = "host";
 	maximum-speed = "high-speed";
 };
 
@@ -738,6 +710,7 @@
 
 &usbdp_phy {
 	status = "okay";
+	rockchip,dp-lane-mux = <2 3>;
 };
 
 &vop {
@@ -752,15 +725,6 @@
 	vp0_out_hdmi: endpoint@ROCKCHIP_VOP2_EP_HDMI0 {
 		reg = <ROCKCHIP_VOP2_EP_HDMI0>;
 		remote-endpoint = <&hdmi_in_vp0>;
-	};
-};
-
-&gpio4 {
-	hdmi-on-hog {
-		gpios = <RK_PA6 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "HDMI On";
-		gpio-hog;
 	};
 };
 
