@@ -160,6 +160,10 @@
 	cpu-supply = <&vdd_cpu_lit_s0>;
 };
 
+&cpu_b0 {
+	cpu-supply = <&vdd_cpu_big_s0>;
+};
+
 &gmac0 {
 	phy-mode = "rgmii-rxid";
 	clock_in_out = "output";
@@ -631,8 +635,9 @@
 	max-frequency = <200000000>;
 	mmc-hs400-1_8v;
 	mmc-hs400-enhanced-strobe;
+
+	/delete-property/ supports-cqe;
 /*
-	max-frequency = <150000000>;
 	mmc-hs200-1_8v;
 */
 	no-sdio;
@@ -677,7 +682,10 @@
 &pcie1 {
 	reset-gpios = <&gpio4 RK_PB2 0>;
 	vpcie3v3-supply = <&vcc_3v3_pcie1>;
-	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie1m2_pins>;
+	linux,pci-domain = <1>;
+	status = "okay";
 };
 
 &u2phy0 {
@@ -685,7 +693,7 @@
 };
 
 &u2phy1 {
-	status = "okay";
+	status = "disabled";
 };
 
 &usb_drd0_dwc3 {
@@ -694,7 +702,7 @@
 };
 
 &usb_drd1_dwc3 {
-	status = "okay";
+	status = "disabled";
 	dr_mode = "host";
 	maximum-speed = "high-speed";
 };
@@ -705,7 +713,7 @@
 };
 
 &u2phy1_otg {
-	status = "okay";
+	status = "disabled";
 };
 
 &usbdp_phy {
@@ -739,3 +747,37 @@
 		spi-max-frequency = <6000000>; 
 	};
 };
+
+&i2c8 {
+	pinctrl-0 = <&i2c8m3_xfer>;
+	status = "okay";
+};
+
+
+&uart2 {
+	pinctrl-0 = <&uart2m2_xfer>;
+	status = "okay";
+};
+
+&uart10 {
+	pinctrl-0 = <&uart10m2_xfer>;
+	status = "okay";
+};
+
+/*
+&pwm0_2ch_0 {
+	pinctrl-0 = <&pwm0m3_ch0>;
+	status = "okay";
+};
+
+&pwm1_6ch_0 {
+	pinctrl-0 = <&pwm1m3_ch0>;
+	status = "okay";
+};
+
+&can0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&can0m3_pins>;
+	status = "okay";
+};
+*/

@@ -1,0 +1,6 @@
+/rootfs/*.xz
+/rootfs/rootfs-*
+/archives
+/u-boot
+/kernel
+/deploy
