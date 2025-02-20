@@ -5,7 +5,7 @@ export WORKDIR="$(pwd)"
 
 UBOOT_REPO="https://github.com/radxa/u-boot"
 UBOOT_VERSION="next-dev-v2024.10"
-KERNEL_VERSION="linux-6.12.5"
+KERNEL_VERSION="linux-6.12.12"
 
 KERNEL_ARCHIVE="${KERNEL_VERSION}.tar.xz"
 
@@ -27,6 +27,8 @@ fi
 
 echo "Building u-boot..."
 cd u-boot
+export ARCH=arm64
+export CROSS_COMPILE=aarch64-linux-gnu-
 
 make rk3576_defconfig
 sed -i "s#CONFIG_MKIMAGE_DTC_PATH=.*#CONFIG_MKIMAGE_DTC_PATH=\"${WORKDIR}/u-boot/scripts/dtc/dtc\"#g" .config
