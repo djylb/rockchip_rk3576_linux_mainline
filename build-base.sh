@@ -20,7 +20,10 @@ if [ ! -d "u-boot" ]; then
     git clone "${UBOOT_REPO}" -b "${UBOOT_VERSION}" u-boot
 
     cd "${WORKDIR}/u-boot"
-    for i in "${WORKDIR}/patches/u-boot/"*; do patch -p1 < "${i}"; done 
+    for i in "${WORKDIR}/patches/u-boot/"*; do
+        echo "Apply patch ${i}."
+        patch -p1 < "${i}"
+    done
     cd "${WORKDIR}"
 fi
 
@@ -42,7 +45,10 @@ if [ ! -d "kernel" ]; then
     mv "${KERNEL_VERSION}" kernel
 
     cd "${WORKDIR}/kernel"
-    for i in "${WORKDIR}/patches/kernel/"*; do patch -Np1 < "${i}"; done
+    for i in "${WORKDIR}/patches/kernel/"*; do
+        echo "Apply patch ${i}."
+        patch -Np1 < "${i}"
+    done
     cp -rf "${WORKDIR}/patches/kernel-overlay/." ./
 
     cd "${WORKDIR}"

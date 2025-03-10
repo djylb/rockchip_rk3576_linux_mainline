@@ -40,6 +40,22 @@
 		};
 	};
 
+	hdmi_sound: hdmi-sound { 
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,mclk-fs = <128>;
+		simple-audio-card,name = "hdmi";
+		status = "okay";
+
+		simple-audio-card,codec {
+			sound-dai = <&hdmi>;
+		};
+
+		simple-audio-card,cpu {
+			sound-dai = <&sai6>;
+		};
+	};
+
 	vcc_12v0_dcin: regulator-vcc-12v0-dcin {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc_12v0_dcin";
@@ -218,6 +234,7 @@
 &hdmi {
 	enable-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>;
 	status = "okay";
+	#sound-dai-cells = <0>;
 };
 
 &hdmi_in {
@@ -761,6 +778,10 @@
 
 &uart10 {
 	pinctrl-0 = <&uart10m2_xfer>;
+	status = "okay";
+};
+
+&sai6 {
 	status = "okay";
 };
 
