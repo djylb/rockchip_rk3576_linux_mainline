@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 ARCHIVE_DIR="archives"
 export WORKDIR="$(pwd)"
@@ -66,8 +67,12 @@ make O=build modules -j${JOBS}
 make O=build rockchip/rk3576-photonicat2.dtb
 cp -v build/arch/arm64/boot/Image deploy/
 cp -v build/arch/arm64/boot/dts/rockchip/rk3576-photonicat2.dtb deploy/
+rm -rf "${WORKDIR}/kernel/deploy/modules" 2>/dev/null || true
+rm -rf "${WORKDIR}/kernel/deploy/headers" 2>/dev/null || true
 make O=build modules_install INSTALL_MOD_PATH="${WORKDIR}/kernel/deploy/modules" INSTALL_MOD_STRIP=1
+make O=build headers_install INSTALL_HDR_PATH="${WORKDIR}/kernel/deploy/headers/usr/src/linux"
 tar --owner=0 --group=0 --xform s:'^./':: -czf deploy/kmods.tar.gz -C "${WORKDIR}/kernel/deploy/modules" .
+tar --owner=0 --group=0 --xform s:'^./':: -czf deploy/kheaders.tar.gz -C "${WORKDIR}/kernel/deploy/headers" .
 cd "${WORKDIR}"
 
 mkdir -p deploy
