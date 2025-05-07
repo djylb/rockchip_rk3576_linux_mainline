@@ -1,18 +1,16 @@
-This is just a leftover from downstream support for HDMI 2.1.
-Remove the unused struct for now.
-
+Reviewed-by: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 ---
  drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c | 31 -----------------------
  1 file changed, 31 deletions(-)
 
 diff --git a/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c b/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
-index 089020df5b4b8f9b44d272fa87a66e0f2c8ccaba..1f5b7ffc0c5c47def33c93736bb1bd1491cd59d0 100644
+index d0989dc5a0173af4de4521e690c3f7b6cc343402..70621687b5eb3581a81af20b23d0be53263003bb 100644
 --- a/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
 +++ b/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
-@@ -195,37 +195,6 @@
- #define HDMI14_MAX_RATE			340000000
- #define HDMI20_MAX_RATE			600000000
+@@ -329,37 +329,6 @@ enum dp_link_rate {
+ 	DP_BW_HBR2,
+ };
  
 -struct lcpll_config {
 -	u32 bit_rate;
@@ -50,4 +48,4 @@ index 089020df5b4b8f9b44d272fa87a66e0f2c8ccaba..1f5b7ffc0c5c47def33c93736bb1bd14
  	u8 pms_mdiv;
 
 -- 
-2.47.0
+2.48.1
