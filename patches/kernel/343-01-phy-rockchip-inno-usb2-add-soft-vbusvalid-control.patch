@@ -1,11 +1,10 @@
-
 Signed-off-by: Nicolas Frattaroli <nicolas.frattaroli@collabora.com>
 ---
- drivers/phy/rockchip/phy-rockchip-inno-usb2.c | 78 +++++++++++++++++++++++++--
- 1 file changed, 74 insertions(+), 4 deletions(-)
+ drivers/phy/rockchip/phy-rockchip-inno-usb2.c | 113 +++++++++++++++++++++++++-
+ 1 file changed, 109 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/phy/rockchip/phy-rockchip-inno-usb2.c b/drivers/phy/rockchip/phy-rockchip-inno-usb2.c
-index b5e6a864deebbcb33375001fc6ed67b2dfee6954..7dc4f53e18fcf0c9d010dd78e5fcd089b6bae43f 100644
+index b5e6a864deebbcb33375001fc6ed67b2dfee6954..07be9c033c772d4157c7bf438fca9b9219a68c9d 100644
 --- a/drivers/phy/rockchip/phy-rockchip-inno-usb2.c
 +++ b/drivers/phy/rockchip/phy-rockchip-inno-usb2.c
 @@ -17,6 +17,7 @@
@@ -94,7 +93,7 @@ index b5e6a864deebbcb33375001fc6ed67b2dfee6954..7dc4f53e18fcf0c9d010dd78e5fcd089
  
  	sch_work = false;
  	notify_charger = false;
-@@ -1276,6 +1298,48 @@ static int rockchip_otg_event(struct notifier_block *nb,
+@@ -1276,6 +1298,83 @@ static int rockchip_otg_event(struct notifier_block *nb,
  	return NOTIFY_DONE;
  }
  
@@ -103,18 +102,55 @@ index b5e6a864deebbcb33375001fc6ed67b2dfee6954..7dc4f53e18fcf0c9d010dd78e5fcd089
 +	NULL,
 +};
 +
++static struct device_node *rockchip_usb2phy_to_controller(struct rockchip_usb2phy *rphy)
++{
++	struct device_node *np;
++	struct device_node *parent;
++
++	for_each_node_with_property(np, "phys") {
++		struct of_phandle_iterator it;
++		int ret;
++
++		of_for_each_phandle(&it, ret, np, "phys", NULL, 0) {
++			parent = of_get_parent(it.node);
++			if (it.node != rphy->dev->of_node && rphy->dev->of_node != parent) {
++				if (parent)
++					of_node_put(parent);
++				continue;
++			}
++
++			/*
++			 * Either the PHY phandle we're iterating or its parent
++			 * matched, we don't care about which out of the two in
++			 * particular as we just need to know it's the right
++			 * USB controller for this PHY.
++			 */
++			of_node_put(it.node);
++			of_node_put(parent);
++			return np;
++		}
++	}
++
++	return NULL;
++}
++
 +static bool rockchip_usb2phy_otg_is_type_c(struct rockchip_usb2phy *rphy)
 +{
-+	struct device_node *node = rphy->dev->of_node;
++	struct device_node *controller = rockchip_usb2phy_to_controller(rphy);
 +	struct device_node *ports;
 +	struct device_node *ep = NULL;
 +	struct device_node *parent;
 +
-+	ports = of_get_child_by_name(node, "ports");
-+	if (ports)
-+		node = ports;
++	if (!controller)
++		return false;
 +
-+	for_each_of_graph_port(node, port) {
++	ports = of_get_child_by_name(controller, "ports");
++	if (ports) {
++		of_node_put(controller);
++		controller = ports;
++	}
++
++	for_each_of_graph_port(controller, port) {
 +		ep = of_get_child_by_name(port, "endpoint");
 +		if (!ep)
 +			continue;
@@ -126,16 +162,14 @@ index b5e6a864deebbcb33375001fc6ed67b2dfee6954..7dc4f53e18fcf0c9d010dd78e5fcd089
 +
 +		if (of_device_compatible_match(parent, rockchip_usb2phy_typec_cons)) {
 +			of_node_put(parent);
-+			if (ports)
-+				of_node_put(ports);
++			of_node_put(controller);
 +			return true;
 +		}
 +
 +		of_node_put(parent);
 +	}
 +
-+	if (ports)
-+		of_node_put(ports);
++	of_node_put(controller);
 +
 +	return false;
 +}
@@ -143,7 +177,7 @@ index b5e6a864deebbcb33375001fc6ed67b2dfee6954..7dc4f53e18fcf0c9d010dd78e5fcd089
  static int rockchip_usb2phy_otg_port_init(struct rockchip_usb2phy *rphy,
  					  struct rockchip_usb2phy_port *rport,
  					  struct device_node *child_np)
-@@ -1297,6 +1361,8 @@ static int rockchip_usb2phy_otg_port_init(struct rockchip_usb2phy *rphy,
+@@ -1297,6 +1396,8 @@ static int rockchip_usb2phy_otg_port_init(struct rockchip_usb2phy *rphy,
  
  	mutex_init(&rport->mutex);
  
@@ -152,7 +186,7 @@ index b5e6a864deebbcb33375001fc6ed67b2dfee6954..7dc4f53e18fcf0c9d010dd78e5fcd089
  	rport->mode = of_usb_get_dr_mode_by_phy(child_np, -1);
  	if (rport->mode == USB_DR_MODE_HOST ||
  	    rport->mode == USB_DR_MODE_UNKNOWN) {
-@@ -1971,6 +2037,8 @@ static const struct rockchip_usb2phy_cfg rk3576_phy_cfgs[] = {
+@@ -1971,6 +2072,8 @@ static const struct rockchip_usb2phy_cfg rk3576_phy_cfgs[] = {
  		.port_cfgs	= {
  			[USB2PHY_PORT_OTG] = {
  				.phy_sus	= { 0x0000, 8, 0, 0, 0x1d1 },
@@ -161,7 +195,7 @@ index b5e6a864deebbcb33375001fc6ed67b2dfee6954..7dc4f53e18fcf0c9d010dd78e5fcd089
  				.bvalid_det_en	= { 0x00c0, 1, 1, 0, 1 },
  				.bvalid_det_st	= { 0x00c4, 1, 1, 0, 1 },
  				.bvalid_det_clr = { 0x00c8, 1, 1, 0, 1 },
-@@ -2008,6 +2076,8 @@ static const struct rockchip_usb2phy_cfg rk3576_phy_cfgs[] = {
+@@ -2008,6 +2111,8 @@ static const struct rockchip_usb2phy_cfg rk3576_phy_cfgs[] = {
  		.port_cfgs	= {
  			[USB2PHY_PORT_OTG] = {
  				.phy_sus	= { 0x2000, 8, 0, 0, 0x1d1 },

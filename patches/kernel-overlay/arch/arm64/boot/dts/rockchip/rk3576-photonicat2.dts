@@ -822,7 +822,6 @@
 
 &usbdp_phy {
 	status = "okay";
-	rockchip,dp-lane-mux = <2 3>;
 };
 
 &vop {
