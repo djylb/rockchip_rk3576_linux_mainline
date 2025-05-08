@@ -1,23 +1,27 @@
-From 37ef754c5779888ea4fcd08accdc7bb357badf2a Mon Sep 17 00:00:00 2001
+From 6fd4f8a26a21dd2075cfcc7eae3b9d440d886571 Mon Sep 17 00:00:00 2001
 From: Andy Yan <andy.yan@rock-chips.com>
-Date: Fri, 20 Sep 2024 16:22:17 +0800
-Subject: [PATCH 72/77] drm/rockchip: vop2: Register the primary plane and
- overlay plane separately
+Date: Mon, 3 Mar 2025 11:44:15 +0800
+Subject: [PATCH] drm/rockchip: vop2: Register the primary plane and overlay
+ plane separately
 
 In the upcoming VOP of rk3576, a Window cannot attach to all Video Ports,
 so make sure all VP find it's suitable primary plane, then register the
 remain windows as overlay plane will make code easier.
 
 Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+Tested-by: Michael Riesch <michael.riesch@wolfvision.net> # on RK3568
+Tested-by: Detlev Casanova <detlev.casanova@collabora.com>
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Link: https://patchwork.freedesktop.org/patch/msgid/20250303034436.192400-2-andyshrk@163.com
 ---
- drivers/gpu/drm/rockchip/rockchip_drm_vop2.c | 100 +++++++++++--------
- 1 file changed, 61 insertions(+), 39 deletions(-)
+ drivers/gpu/drm/rockchip/rockchip_drm_vop2.c | 99 ++++++++++++--------
+ 1 file changed, 60 insertions(+), 39 deletions(-)
 
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-index b4964c70149f9..e293310b30420 100644
+index bebe5bd70b9053..0af5059ff7d8b2 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-@@ -2024,22 +2024,29 @@ static int vop2_plane_init(struct vop2 *vop2, struct vop2_win *win,
+@@ -2264,22 +2264,29 @@ static int vop2_plane_init(struct vop2 *vop2, struct vop2_win *win,
  	return 0;
  }
  
@@ -60,7 +64,7 @@ index b4964c70149f9..e293310b30420 100644
  }
  
  static int vop2_create_crtcs(struct vop2 *vop2)
-@@ -2050,7 +2057,9 @@ static int vop2_create_crtcs(struct vop2 *vop2)
+@@ -2290,7 +2297,9 @@ static int vop2_create_crtcs(struct vop2 *vop2)
  	struct drm_plane *plane;
  	struct device_node *port;
  	struct vop2_video_port *vp;
@@ -71,7 +75,7 @@ index b4964c70149f9..e293310b30420 100644
  	int ret;
  
  	for (i = 0; i < vop2_data->nr_vps; i++) {
-@@ -2089,42 +2098,55 @@ static int vop2_create_crtcs(struct vop2 *vop2)
+@@ -2326,42 +2335,54 @@ static int vop2_create_crtcs(struct vop2 *vop2)
  	}
  
  	nvp = 0;
@@ -115,11 +119,10 @@ index b4964c70149f9..e293310b30420 100644
  				possible_crtcs = BIT(nvp);
  				vp->primary_plane = win;
 +				ret = vop2_plane_init(vop2, win, possible_crtcs);
-+				if (ret) {
-+					drm_err(vop2->drm, "failed to init primary plane %s: %d\n",
-+						win->data->name, ret);
-+					return ret;
-+				}
++				if (ret)
++					return dev_err_probe(drm->dev, ret,
++							     "failed to init primary plane %s\n",
++							     win->data->name);
  				nvp++;
 -			} else {
 -				/* change the unused primary window to overlay window */
@@ -146,12 +149,9 @@ index b4964c70149f9..e293310b30420 100644
  
 +		possible_crtcs = (1 << nvps) - 1;
  		ret = vop2_plane_init(vop2, win, possible_crtcs);
- 		if (ret) {
--			drm_err(vop2->drm, "failed to init plane %s: %d\n",
-+			drm_err(vop2->drm, "failed to init overlay plane %s: %d\n",
- 				win->data->name, ret);
- 			return ret;
- 		}
--- 
-2.47.0
-
+ 		if (ret)
+-			return dev_err_probe(drm->dev, ret, "failed to init plane %s\n",
++			return dev_err_probe(drm->dev, ret, "failed to init overlay plane %s\n",
+ 					     win->data->name);
+ 	}
+ 

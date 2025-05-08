@@ -6,7 +6,7 @@ export WORKDIR="$(pwd)"
 
 UBOOT_REPO="https://github.com/radxa/u-boot"
 UBOOT_VERSION="next-dev-v2024.10"
-KERNEL_VERSION="linux-6.12.12"
+KERNEL_VERSION="linux-6.12.27"
 
 KERNEL_ARCHIVE="${KERNEL_VERSION}.tar.xz"
 
@@ -48,7 +48,7 @@ if [ ! -d "kernel" ]; then
     cd "${WORKDIR}/kernel"
     for i in "${WORKDIR}/patches/kernel/"*; do
         echo "Apply patch ${i}."
-        patch -Np1 < "${i}"
+        patch --verbose -Np1 < "${i}"
     done
     cp -rf "${WORKDIR}/patches/kernel-overlay/." ./
 

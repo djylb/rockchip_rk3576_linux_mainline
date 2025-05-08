@@ -1,7 +1,7 @@
-From 1db579ab92174598dd6790058d1e3c1fbbbd0d2b Mon Sep 17 00:00:00 2001
+From 779964556c64cd3d76ddfeb34738ef78020fae84 Mon Sep 17 00:00:00 2001
 From: Andy Yan <andy.yan@rock-chips.com>
-Date: Fri, 20 Sep 2024 16:20:11 +0800
-Subject: [PATCH 62/77] drm/rockchip: vop2: Add debugfs support
+Date: Sat, 14 Dec 2024 16:17:00 +0800
+Subject: [PATCH] drm/rockchip: vop2: Add debugfs support
 
 /sys/kernel/debug/dri/vop2/summary:  dump vop display state
 /sys/kernel/debug/dri/vop2/regs: dump whole vop registers
@@ -10,14 +10,18 @@ activated modules
 
 Reviewed-by: Sascha Hauer <s.hauer@pengutronix.de>
 Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+Tested-by: Michael Riesch <michael.riesch@wolfvision.net> # on RK3568
+Tested-by: Detlev Casanova <detlev.casanova@collabora.com>
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Link: https://patchwork.freedesktop.org/patch/msgid/20241214081719.3330518-2-andyshrk@163.com
 ---
- drivers/gpu/drm/rockchip/rockchip_drm_vop2.c | 260 +++++++++++++++++++
+ drivers/gpu/drm/rockchip/rockchip_drm_vop2.c | 258 +++++++++++++++++++
  drivers/gpu/drm/rockchip/rockchip_drm_vop2.h |  11 +
  drivers/gpu/drm/rockchip/rockchip_vop2_reg.c | 191 ++++++++++++++
- 3 files changed, 462 insertions(+)
+ 3 files changed, 460 insertions(+)
 
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-index 9873172e3fd33..cd861c022a66c 100644
+index 5fab0055d1cbc1..bbf5c21efcd605 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
 @@ -24,9 +24,11 @@
@@ -44,7 +48,6 @@ index 9873172e3fd33..cd861c022a66c 100644
  
  #define vop2_output_if_is_dpi(x)	((x) == ROCKCHIP_VOP2_EP_RGB0)
  
-+
 +/*
 + * bus-format types.
 + */
@@ -73,12 +76,13 @@ index 9873172e3fd33..cd861c022a66c 100644
 +	{ MEDIA_BUS_FMT_RGB101010_1X30, "RGB101010_1X30" },
 +	{ MEDIA_BUS_FMT_YUYV10_1X20, "YUYV10_1X20" },
 +};
++
 +static DRM_ENUM_NAME_FN(drm_get_bus_format_name, drm_bus_format_enum_list)
 +
  static const struct regmap_config vop2_regmap_config;
  
  static struct vop2_video_port *to_vop2_video_port(struct drm_crtc *crtc)
-@@ -2513,6 +2547,230 @@ static const struct drm_crtc_helper_funcs vop2_crtc_helper_funcs = {
+@@ -2718,6 +2752,228 @@ static const struct drm_crtc_helper_funcs vop2_crtc_helper_funcs = {
  	.atomic_disable = vop2_crtc_atomic_disable,
  };
  
@@ -91,7 +95,6 @@ index 9873172e3fd33..cd861c022a66c 100644
 +	drm_for_each_connector_iter(connector, &conn_iter) {
 +		if (crtc->state->connector_mask & drm_connector_mask(connector))
 +			seq_printf(s, "    Connector: %s\n", connector->name);
-+
 +	}
 +	drm_connector_list_iter_end(&conn_iter);
 +}
@@ -173,18 +176,18 @@ index 9873172e3fd33..cd861c022a66c 100644
 +
 +	vop2_dump_connector_on_crtc(crtc, s);
 +	seq_printf(s, "\tbus_format[%x]: %s\n", vcstate->bus_format,
-+		    drm_get_bus_format_name(vcstate->bus_format));
++		   drm_get_bus_format_name(vcstate->bus_format));
 +	seq_printf(s, "\toutput_mode[%x]", vcstate->output_mode);
 +	seq_printf(s, " color_space[%d]\n", vcstate->color_space);
 +	seq_printf(s, "    Display mode: %dx%d%s%d\n",
-+		    mode->hdisplay, mode->vdisplay, interlaced ? "i" : "p",
-+		    drm_mode_vrefresh(mode));
++		   mode->hdisplay, mode->vdisplay, interlaced ? "i" : "p",
++		   drm_mode_vrefresh(mode));
 +	seq_printf(s, "\tclk[%d] real_clk[%d] type[%x] flag[%x]\n",
-+		    mode->clock, mode->crtc_clock, mode->type, mode->flags);
++		   mode->clock, mode->crtc_clock, mode->type, mode->flags);
 +	seq_printf(s, "\tH: %d %d %d %d\n", mode->hdisplay, mode->hsync_start,
-+		    mode->hsync_end, mode->htotal);
++		   mode->hsync_end, mode->htotal);
 +	seq_printf(s, "\tV: %d %d %d %d\n", mode->vdisplay, mode->vsync_start,
-+		    mode->vsync_end, mode->vtotal);
++		   mode->vsync_end, mode->vtotal);
 +
 +	drm_atomic_crtc_for_each_plane(plane, crtc) {
 +		vop2_plane_state_dump(s, plane);
@@ -253,10 +256,9 @@ index 9873172e3fd33..cd861c022a66c 100644
 +			vop2_regs_print(vop2, s, dump, active_only);
 +		}
 +	} else {
-+		seq_printf(s, "VOP disabled\n");
++		seq_puts(s, "VOP disabled\n");
 +	}
 +	drm_modeset_unlock_all(drm_dev);
-+
 +}
 +
 +static int vop2_regs_show(struct seq_file *s, void *arg)
@@ -309,7 +311,7 @@ index 9873172e3fd33..cd861c022a66c 100644
  static struct drm_crtc_state *vop2_crtc_duplicate_state(struct drm_crtc *crtc)
  {
  	struct rockchip_crtc_state *vcstate;
-@@ -2562,6 +2820,7 @@ static const struct drm_crtc_funcs vop2_crtc_funcs = {
+@@ -2767,6 +3023,7 @@ static const struct drm_crtc_funcs vop2_crtc_funcs = {
  	.atomic_destroy_state = vop2_crtc_destroy_state,
  	.enable_vblank = vop2_crtc_enable_vblank,
  	.disable_vblank = vop2_crtc_disable_vblank,
@@ -317,7 +319,7 @@ index 9873172e3fd33..cd861c022a66c 100644
  };
  
  static irqreturn_t vop2_isr(int irq, void *data)
-@@ -3106,6 +3365,7 @@ static int vop2_bind(struct device *dev, struct device *master, void *data)
+@@ -3316,6 +3573,7 @@ static int vop2_bind(struct device *dev, struct device *master, void *data)
  		return -EINVAL;
  	}
  
@@ -326,7 +328,7 @@ index 9873172e3fd33..cd861c022a66c 100644
  	if (IS_ERR(vop2->regs))
  		return PTR_ERR(vop2->regs);
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.h b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.h
-index 615a16196aff6..59cd6b933bfba 100644
+index 22c43a50caf026..2cb7b6b40c77e9 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.h
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.h
 @@ -122,6 +122,15 @@ enum vop2_win_regs {
@@ -359,7 +361,7 @@ index 615a16196aff6..59cd6b933bfba 100644
  };
  
 diff --git a/drivers/gpu/drm/rockchip/rockchip_vop2_reg.c b/drivers/gpu/drm/rockchip/rockchip_vop2_reg.c
-index 18efb3fe1c000..8ff0bd528d65d 100644
+index 008b70fbc33a30..9247f94343f2c4 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_vop2_reg.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_vop2_reg.c
 @@ -258,6 +258,88 @@ static const struct vop2_win_data rk3568_vop_win_data[] = {
@@ -588,6 +590,3 @@ index 18efb3fe1c000..8ff0bd528d65d 100644
  	.soc_id = 3588,
  };
  
--- 
-2.47.0
-
