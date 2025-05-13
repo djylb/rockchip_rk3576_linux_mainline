@@ -683,11 +683,12 @@
 				reg = <0x0 0x10>;
 				resets = <&cru SRST_OTGPHY_0>, <&cru SRST_P_USBPHY_GRF_0>;
 				reset-names = "phy", "apb";
-				clocks = <&cru CLK_PHY_REF_SRC>, <&cru ACLK_MMU2>, <&cru ACLK_SLV_MMU2>;
+				clocks = <&cru CLK_PHY_REF_SRC>,
+					 <&cru ACLK_MMU2>,
+					 <&cru ACLK_SLV_MMU2>;
 				clock-names = "phyclk", "aclk", "aclk_slv";
 				clock-output-names = "usb480m_phy0";
 				#clock-cells = <0>;
-				rockchip,usbctrl-grf = <&usb_grf>;
 				status = "disabled";
 
 				u2phy0_otg: otg-port {
@@ -705,11 +706,12 @@
 				reg = <0x2000 0x10>;
 				resets = <&cru SRST_OTGPHY_1>, <&cru SRST_P_USBPHY_GRF_1>;
 				reset-names = "phy", "apb";
-				clocks = <&cru CLK_PHY_REF_SRC>, <&cru ACLK_MMU1>, <&cru ACLK_SLV_MMU1>;
+				clocks = <&cru CLK_PHY_REF_SRC>,
+					 <&cru ACLK_MMU1>,
+					 <&cru ACLK_SLV_MMU1>;
 				clock-names = "phyclk", "aclk", "aclk_slv";
 				clock-output-names = "usb480m_phy1";
 				#clock-cells = <0>;
-				rockchip,usbctrl-grf = <&php_grf>;
 				status = "disabled";
 
 				u2phy1_otg: otg-port {

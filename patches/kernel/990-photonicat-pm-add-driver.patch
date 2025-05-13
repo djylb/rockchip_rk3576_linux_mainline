@@ -54,7 +54,7 @@ new file mode 100644
 index 000000000..761f02abe
 --- /dev/null
 +++ b/drivers/staging/photonicat-pm/photonicat-pm.c
-@@ -0,0 +1,1361 @@
+@@ -0,0 +1,1360 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (c) 2025, Kyosuke Nekoyashiki <supercatexpert@gmail.com>
@@ -644,7 +644,6 @@ index 000000000..761f02abe
 +		
 +		p = buffer + i;
 +		remaining_size = *buffer_used - i;
-+		used_size = i + 1;
 +
 +		if (remaining_size < 13)
 +			break;
