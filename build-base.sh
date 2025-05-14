@@ -6,7 +6,7 @@ export WORKDIR="$(pwd)"
 
 UBOOT_REPO="https://github.com/radxa/u-boot"
 UBOOT_VERSION="next-dev-v2024.10"
-KERNEL_VERSION="linux-6.12.27"
+KERNEL_VERSION="linux-6.12.28"
 
 KERNEL_ARCHIVE="${KERNEL_VERSION}.tar.xz"
 

@@ -97,6 +97,8 @@
 
 	vcc_3v3_pcie0: regulator-vcc-3v3-pcie0 {
 		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pcie0_pwr_en>;
 		regulator-name = "vcc_3v3_pcie0";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
@@ -108,6 +110,8 @@
 
 	vcc_3v3_pcie1: regulator-vcc-3v3-pcie1 {
 		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pcie1_pwr_en>;
 		regulator-name = "vcc_3v3_pcie1";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
@@ -157,6 +161,21 @@
 		vin-supply = <&vcc_12v0_dcin>;
 	};
 
+	vcc5v0_usb_switch: vcc5v0-usb-switch {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc5v0_usb_switch";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		startup-delay-us = <100000>;
+		gpio = <&gpio0 RK_PC2 0>;
+		vin-supply = <&vcc_5v0_sys>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&usb_hub_switch>;
+	};
+
 	vcc5v0_otg: vcc5v0-otg {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc5v0_otg";
@@ -166,7 +185,7 @@
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
 		gpio = <&gpio4 RK_PC4 0>;
-		vin-supply = <&vcc_5v0_sys>;
+		vin-supply = <&vcc5v0_usb_switch>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&usb_otg_pwren>;
         };
@@ -228,6 +247,8 @@
 
 	rfkill-usb-wlan {
 		compatible = "rfkill-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&rfkill_usb_wlan>;
 		label = "rfkill-usb-wlan";
 		radio-type = "wlan";
 		shutdown-gpios = <&gpio1 RK_PC6 GPIO_ACTIVE_HIGH>;
@@ -235,13 +256,26 @@
 
 	rfkill-pcie-wlan {
 		compatible = "rfkill-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&rfkill_pcie_wlan>;
 		label = "rfkill-pcie-wlan";
 		radio-type = "wlan";
 		shutdown-gpios = <&gpio0 RK_PD1 GPIO_ACTIVE_HIGH>;
 	};
 
+	rfkill-pcie-bluetooth {
+		compatible = "rfkill-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&rfkill_pcie_bluetooth>;
+		label = "rfkill-pcie-bluetooth";
+		radio-type = "bluetooth";
+		shutdown-gpios = <&gpio0 RK_PD0 GPIO_ACTIVE_HIGH>;
+        };
+
 	rfkill-usb-wwan {
 		compatible = "rfkill-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&rfkill_usb_wwan>;
 		label = "rfkill-usb-wwan";
 		radio-type = "wwan";
 		shutdown-gpios = <&gpio0 RK_PC0 GPIO_ACTIVE_HIGH>;
@@ -719,6 +753,10 @@
 		usb_otg_pwren: usb-otg-pwren {
 			rockchip,pins = <4 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
+
+		usb_hub_switch: usb-hub-switch {
+			rockchip,pins = <0 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
 	};
 
 	spi1 {
@@ -729,6 +767,36 @@
 				<3 RK_PC7 10 &pcfg_pull_none>,
 				/* spi1_mosi_m2 */
 				<3 RK_PC6 10 &pcfg_pull_none>;
+		};
+	};
+
+	pcie {
+		pcie0_pwr_en: pcie0-pwr-en {
+			rockchip,pins = <0 RK_PC7 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		pcie1_pwr_en: pcie1-pwr-en { 
+			rockchip,pins = <0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		pcie0_reset: pcie0-reset {
+			rockchip,pins = <4 RK_PC7 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+		pcie1_reset: pcie1-reset {
+			rockchip,pins = <4 RK_PB2 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+	
+	rfkill {
+		rfkill_usb_wlan: rfkill-usb-wlan {
+			rockchip,pins = <1 RK_PC6 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		rfkill_pcie_wlan: rfkill-pcie-wlan {
+			rockchip,pins = <0 RK_PD1 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		rfkill_pcie_bluetooth: rfkill-pcie-bluetooth {
+			rockchip,pins = <0 RK_PD0 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		rfkill_usb_wwan: rfkill-usb-wwan {
+			rockchip,pins = <0 RK_PC0 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
 };
@@ -778,16 +846,18 @@
 };
 
 &pcie0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie0_reset>;
 	reset-gpios = <&gpio4 RK_PC7 0>;
 	vpcie3v3-supply = <&vcc_3v3_pcie0>;
 	status = "okay";
 };
 
 &pcie1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie1_reset &pcie1m2_pins>;
 	reset-gpios = <&gpio4 RK_PB2 0>;
 	vpcie3v3-supply = <&vcc_3v3_pcie1>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pcie1m2_pins>;
 	linux,pci-domain = <1>;
 	status = "okay";
 };
@@ -807,13 +877,11 @@
 
 &usb_drd1_dwc3 {
 	status = "disabled";
-	dr_mode = "host";
-	maximum-speed = "high-speed";
 };
 
 &u2phy0_otg {
 	status = "okay";
-	phy-supply = <&vcc5v0_otg>;
+	vbus-supply = <&vcc5v0_otg>;
 };
 
 &u2phy1_otg {
@@ -904,13 +972,6 @@
 };
 
 &gpio0 {
-	usb0-dir-ctrl {
-		gpio-hog;
-		gpios = <RK_PC2 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "usb0-dir-ctrl"; 
-	};
-
 	wwan-airplane-ctrl {
 		gpio-hog;
 		gpios = <RK_PB5 GPIO_ACTIVE_HIGH>;
