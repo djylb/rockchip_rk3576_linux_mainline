@@ -55,6 +55,7 @@ index 000000000..761f02abe
 --- /dev/null
 +++ b/drivers/staging/photonicat-pm/photonicat-pm.c
 @@ -0,0 +1,1360 @@
+@@ -0,0 +1,1367 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (c) 2025, Kyosuke Nekoyashiki <supercatexpert@gmail.com>
@@ -144,6 +145,7 @@ index 000000000..761f02abe
 +	POWER_SUPPLY_PROP_ENERGY_EMPTY,
 +	POWER_SUPPLY_PROP_VOLTAGE_NOW,
 +	POWER_SUPPLY_PROP_CURRENT_NOW,
++	POWER_SUPPLY_PROP_POWER_NOW,
 +	POWER_SUPPLY_PROP_TECHNOLOGY,
 +	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
 +	POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN,
@@ -387,6 +389,12 @@ index 000000000..761f02abe
 +	case POWER_SUPPLY_PROP_CURRENT_NOW:
 +		mutex_lock(&pm_data->mutex);
 +		val->intval = pm_data->battery_current_now;
++		mutex_unlock(&pm_data->mutex);
++		break;
++	case POWER_SUPPLY_PROP_POWER_NOW:
++		mutex_lock(&pm_data->mutex);
++		val->intval = (pm_data->battery_voltage_now / 1000) *
++			(pm_data->battery_current_now / 1000);
 +		mutex_unlock(&pm_data->mutex);
 +		break;
 +	case POWER_SUPPLY_PROP_CAPACITY:
