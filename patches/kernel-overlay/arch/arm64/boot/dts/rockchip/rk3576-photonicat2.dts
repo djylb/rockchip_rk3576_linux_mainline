@@ -294,22 +294,23 @@
 	phy-mode = "rgmii-rxid";
 	clock_in_out = "output";
 
-	snps,reset-gpio = <&gpio0 RK_PD2 GPIO_ACTIVE_LOW>;
-	snps,reset-active-low;
-	snps,reset-delays-us = <0 20000 100000>;
-
+	phy-handle = <&rgmii_phy0>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&eth0m1_miim
 		     &eth0m1_tx_bus2
 		     &eth0m1_rx_bus2
 		     &eth0m1_rgmii_clk
 		     &eth0m1_rgmii_bus
-		     &ethm1_clk0_25m_out>;
+		     &ethm1_clk0_25m_out
+		     &gmac0_rst>;
+
+	snps,reset-gpio = <&gpio0 RK_PD2 GPIO_ACTIVE_LOW>;
+	snps,reset-active-low;
+	snps,reset-delays-us = <0 20000 100000>;
 
 	tx_delay = <0x20>;
 	/* rx_delay = <0x3f>; */
 
-	phy-handle = <&rgmii_phy0>;
 	status = "okay";
 };
 
@@ -317,22 +318,23 @@
 	phy-mode = "rgmii-rxid";
 	clock_in_out = "output";
 
-	snps,reset-gpio = <&gpio0 RK_PD3 GPIO_ACTIVE_LOW>;
-	snps,reset-active-low;
-	snps,reset-delays-us = <0 20000 100000>;
-
+	phy-handle = <&rgmii_phy1>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&eth1m0_miim
 		     &eth1m0_tx_bus2
 		     &eth1m0_rx_bus2
 		     &eth1m0_rgmii_clk
 		     &eth1m0_rgmii_bus
-		     &ethm0_clk1_25m_out>;
+		     &ethm0_clk1_25m_out
+		     &gmac1_rst>;
+
+	snps,reset-gpio = <&gpio0 RK_PD3 GPIO_ACTIVE_LOW>;
+	snps,reset-active-low;
+	snps,reset-delays-us = <0 20000 100000>;
 
 	tx_delay = <0x20>;
 	/* rx_delay = <0x3f>; */
 
-	phy-handle = <&rgmii_phy1>;
 	status = "okay";
 };
 
@@ -759,6 +761,15 @@
 		};
 	};
 
+	gmac {
+		gmac0_rst: gmac0-rst {
+			rockchip,pins = <0 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		gmac1_rst: gmac1-rst {
+			rockchip,pins = <0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
 	spi1 {
 		/omit-if-no-ref/
 		spi1m2_1_pins: spi1m2-1-pins {
@@ -809,9 +820,7 @@
 	mmc-hs400-enhanced-strobe;
 
 	/delete-property/ supports-cqe;
-/*
-	mmc-hs200-1_8v;
-*/
+
 	no-sdio;
 	no-sd;
 	non-removable;
@@ -873,6 +882,28 @@
 &usb_drd0_dwc3 {
 	status = "okay";
 	dr_mode = "host";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+
+	/* 2.0 hub on port 1 */
+	hub_2_0: hub@1 {
+		compatible = "usb5e3,610";
+		reg = <1>;
+		peer-hub = <&hub_3_0>;
+		vdd-supply = <&vcc5v0_otg>;
+		/* reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>; */
+		
+	};
+
+	/* 3.0 hub on port 4 */
+	hub_3_0: hub@2 {
+		compatible = "usb5e3,620";
+		reg = <2>;
+		peer-hub = <&hub_2_0>;
+		vdd-supply = <&vcc5v0_otg>;
+		/* reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>; */
+	};
 };
 
 &usb_drd1_dwc3 {
@@ -881,7 +912,7 @@
 
 &u2phy0_otg {
 	status = "okay";
-	vbus-supply = <&vcc5v0_otg>;
+	phy-supply = <&vcc5v0_otg>;
 };
 
 &u2phy1_otg {
@@ -889,6 +920,7 @@
 };
 
 &usbdp_phy {
+	rockchip,dp-lane-mux = <2 3>;
 	status = "okay";
 };
 

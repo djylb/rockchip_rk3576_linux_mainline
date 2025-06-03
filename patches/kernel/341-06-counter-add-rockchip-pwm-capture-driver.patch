@@ -3,14 +3,14 @@ Signed-off-by: Nicolas Frattaroli <nicolas.frattaroli@collabora.com>
  MAINTAINERS                            |   1 +
  drivers/counter/Kconfig                |  13 ++
  drivers/counter/Makefile               |   1 +
- drivers/counter/rockchip-pwm-capture.c | 341 +++++++++++++++++++++++++++++++++
- 4 files changed, 356 insertions(+)
+ drivers/counter/rockchip-pwm-capture.c | 352 +++++++++++++++++++++++++++++++++
+ 4 files changed, 367 insertions(+)
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 3ddd245fd4ad8d9ed2e762910a7a1f6436f93e34..e5d26256d05a04a9642371cf3dbb4dd0c1c34e68 100644
+index 0014af1cbd3a7729a04bfdd0b0ed50e9df425693..9690f00053df17f8459aa2c6c8f0c62c6a25107e 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -20891,6 +20891,7 @@ L:	linux-rockchip@lists.infradead.org
+@@ -21424,6 +21424,7 @@ L:	linux-rockchip@lists.infradead.org
  L:	linux-pwm@vger.kernel.org
  S:	Maintained
  F:	Documentation/devicetree/bindings/pwm/rockchip,rk3576-pwm.yaml
@@ -53,10 +53,10 @@ index fa3c1d08f7068835aa912aa13bc92bcfd44d16fb..2bfcfc2c584bd174a9885064746a98f1
 +obj-$(CONFIG_ROCKCHIP_PWM_CAPTURE)	+= rockchip-pwm-capture.o
 diff --git a/drivers/counter/rockchip-pwm-capture.c b/drivers/counter/rockchip-pwm-capture.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..b2bfa2c6e04dfa0410fa0d7ef1c395217e4a9db2
+index 0000000000000000000000000000000000000000..03fe9cf32e7f273c0091c4743642eda6bee76222
 --- /dev/null
 +++ b/drivers/counter/rockchip-pwm-capture.c
-@@ -0,0 +1,341 @@
+@@ -0,0 +1,352 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (c) 2025 Collabora Ltd.
@@ -75,7 +75,7 @@ index 0000000000000000000000000000000000000000..b2bfa2c6e04dfa0410fa0d7ef1c39521
 +#include <linux/counter.h>
 +#include <linux/devm-helpers.h>
 +#include <linux/interrupt.h>
-+#include <linux/math.h>
++#include <linux/math64.h>
 +#include <linux/mod_devicetable.h>
 +#include <linux/platform_device.h>
 +#include <linux/spinlock.h>
@@ -163,13 +163,17 @@ index 0000000000000000000000000000000000000000..b2bfa2c6e04dfa0410fa0d7ef1c39521
 +			mfpwm_reg_write(pc->pwmf->base, PWMV4_REG_ENABLE,
 +					 PWMV4_EN(true) | PWMV4_CLK_EN(true));
 +
-+			ret = mfpwm_pwmclk_enable(pc->pwmf);
++			ret = clk_enable(pc->pwmf->core);
 +			if (ret)
 +				goto err_release;
 +
-+			ret = mfpwm_acquire(pc->pwmf);
++			ret = clk_rate_exclusive_get(pc->pwmf->core);
 +			if (ret)
 +				goto err_disable_pwm_clk;
++
++			ret = mfpwm_acquire(pc->pwmf);
++			if (ret)
++				goto err_unprotect_pwm_clk;
 +
 +			atomic_set(&pc->captures_left, 4);
 +			pc->is_enabled = true;
@@ -186,7 +190,8 @@ index 0000000000000000000000000000000000000000..b2bfa2c6e04dfa0410fa0d7ef1c39521
 +			 * flush_delayed_work since it may sleep.
 +			 */
 +			mod_delayed_work(system_bh_wq, &pc->clear_capture, 0);
-+			mfpwm_pwmclk_disable(pc->pwmf);
++			clk_rate_exclusive_put(pc->pwmf->core);
++			clk_disable(pc->pwmf->core);
 +			pc->is_enabled = false;
 +			mfpwm_release(pc->pwmf);
 +		}
@@ -196,8 +201,10 @@ index 0000000000000000000000000000000000000000..b2bfa2c6e04dfa0410fa0d7ef1c39521
 +
 +	return 0;
 +
++err_unprotect_pwm_clk:
++	clk_rate_exclusive_put(pc->pwmf->core);
 +err_disable_pwm_clk:
-+	mfpwm_pwmclk_disable(pc->pwmf);
++	clk_disable(pc->pwmf->core);
 +err_release:
 +	mfpwm_release(pc->pwmf);
 +
@@ -253,21 +260,25 @@ index 0000000000000000000000000000000000000000..b2bfa2c6e04dfa0410fa0d7ef1c39521
 +	if (ret)
 +		return ret;
 +
-+	rate = mfpwm_clk_get_rate(pc->pwmf->parent);
++	rate = clk_get_rate(pc->pwmf->core);
 +	if (!rate) {
 +		ret = -EINVAL;
 +		goto out_release;
 +	}
 +
 +	hpc = (u32) atomic_read(&pc->hpc);
++	lpc = (u32) atomic_read(&pc->lpc);
++	period = mul_u64_u64_div_u64(hpc + lpc, NSEC_PER_SEC, rate);
 +
-+	if (count->id == COUNT_PERIOD) {
-+		lpc = (u32) atomic_read(&pc->lpc);
-+		period = mult_frac((hpc + lpc), NSEC_PER_SEC, rate);
-+		*value = period;
-+	} else {
-+		*value = mult_frac(hpc, NSEC_PER_SEC, rate);
++	if (period > jiffies_to_msecs(RKPWMC_CLEAR_DELAY) * NSEC_PER_MSEC) {
++		*value = 0;
++		goto out_release;
 +	}
++
++	if (count->id == COUNT_PERIOD)
++		*value = period;
++	else
++		*value = mul_u64_u64_div_u64(hpc, NSEC_PER_SEC, rate);
 +
 +out_release:
 +	mfpwm_release(pc->pwmf);

@@ -1,0 +1,34 @@
+#!/bin/sh -e
+
+LATEST_KERNEL_PATH="$(ls -1 -r /boot/vmlinuz-* | head -n 1)"
+
+if [ x"${LATEST_KERNEL_PATH}" = x"" ]; then
+    echo "No kernel package installed!"
+    exit 1
+fi
+
+LATEST_KERNEL_BASENAME="$(basename ${LATEST_KERNEL_PATH})"
+LATEST_KERNEL_VERSION="$(echo ${LATEST_KERNEL_BASENAME} | cut -d- -f2)"
+LATEST_KERNEL_INITRD_PATH="/boot/initrd.img-${LATEST_KERNEL_VERSION}"
+LATEST_KERNEL_DTB_PATH="/usr/lib/linux-image-${LATEST_KERNEL_VERSION}/rockchip/rk3576-photonicat2.dtb"
+
+if [ ! -f "${LATEST_KERNEL_INITRD_PATH}" ]; then
+    echo "Missing initrd image ${LATEST_KERNEL_INITRD_PATH}!"
+    exit 2
+fi
+
+if [ ! -f "${LATEST_KERNEL_DTB_PATH}" ]; then
+    echo "Missing device tree ${LATEST_KERNEL_DTB_PATH}!"
+    exit 3
+fi
+
+zcat "${LATEST_KERNEL_PATH}" >/boot/Image.new
+mv /boot/Image.new /boot/Image
+
+mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -d "${LATEST_KERNEL_INITRD_PATH}" /boot/initrd.img.new
+mv /boot/initrd.img.new /boot/initrd.img
+
+cp "${LATEST_KERNEL_DTB_PATH}" /boot/rockchip.dtb
+
+exit 0
+

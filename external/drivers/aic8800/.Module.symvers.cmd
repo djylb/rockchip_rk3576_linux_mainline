@@ -1,0 +1,1 @@
+savedcmd_/var/www/superlynx/ext4/rk3576/external/drivers/aic8800/Module.symvers :=  scripts/mod/modpost -M        -o /var/www/superlynx/ext4/rk3576/external/drivers/aic8800/Module.symvers -T /var/www/superlynx/ext4/rk3576/external/drivers/aic8800/modules.order -i Module.symvers -e 

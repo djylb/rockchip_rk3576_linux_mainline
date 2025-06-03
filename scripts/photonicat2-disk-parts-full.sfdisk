@@ -1,0 +1,2 @@
+start=65536, size=256MiB, type="Linux extended boot"
+size=12288MiB, type="Linux filesystem"
