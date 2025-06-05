@@ -1263,7 +1263,7 @@ index 000000000..761f02abe
 +	pm_data->fan_speed = state;
 +	
 +	if (state > 0) {
-+		speed_raw = 9 * (state - 1) + 19;
++		speed_raw = 10 * (state - 1) + 20;
 +	} else {
 +		speed_raw = 0;
 +	}
