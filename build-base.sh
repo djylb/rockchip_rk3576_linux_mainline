@@ -84,10 +84,5 @@ cd "${WORKDIR}"
 mkdir -p deploy
 mkimage -A arm -O linux -T script -C none -a 0 -e 0 -d scripts/photonicat2.bootscript deploy/boot.scr
 
-echo "Building external drivers..."
-export ARCH=arm64
-export CROSS_COMPILE=aarch64-linux-gnu-
-make -C "${WORKDIR}/kernel/build" M="${WORKDIR}/external/drivers/aic8800" modules
-
 #dd if="u-boot/deploy/idbloader.img" of="${IMG_FILE}" seek=64 conv=notrunc
 #dd if="u-boot/deploy/u-boot.itb" of="${IMG_FILE}" seek=16384 conv=notrunc
