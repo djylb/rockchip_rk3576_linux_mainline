@@ -91,11 +91,13 @@ mount --bind /proc "${TMP_MOUNT_DIR}/rootfs/proc"
 
 cat << EOF | chroot "${TMP_MOUNT_DIR}/rootfs"
 
-dpkg -i "/repo/${KERNEL_DEB}"
 dpkg -i /repo/linux-headers-*_arm64.deb
-apt-get -fy remove linux-headers-6.1.0-*
+dpkg -i "/repo/${KERNEL_DEB}"
 dpkg -i /repo/aic8800-*.deb
 EOF
+
+sleep 15
+sync
 
 umount -f "${TMP_MOUNT_DIR}/rootfs/dev"
 umount -f "${TMP_MOUNT_DIR}/rootfs/proc"

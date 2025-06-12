@@ -1,0 +1,17 @@
+Types: deb deb-src
+URIs: http://ftp.cn.debian.org/debian/
+Suites: trixie
+Components: main non-free contrib non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb deb-src
+URIs: http://ftp.cn.debian.org/debian/
+Suites: trixie-proposed-updates
+Components: main non-free contrib non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb deb-src
+URIs: http://ftp.cn.debian.org/debian-security/
+Suites: trixie-security/updates
+Components: main contrib non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
