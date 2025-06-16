@@ -1312,16 +1312,16 @@
 +	dm_gpio_set_value(&priv->reset_gpio, 1);
 +	dm_gpio_set_value(&priv->ctrl_gpio, 1);
 +
-+	mdelay(10);
++	mdelay(5);
 +	dm_gpio_set_value(&priv->reset_gpio, 0);
 +	mdelay(10);
 +	dm_gpio_set_value(&priv->reset_gpio, 1);
-+	mdelay(120);
++	mdelay(10);
 +
 +	pcat_spi_display_send_command(priv, 0x01);
-+	mdelay(150);
++	mdelay(10);
 +	pcat_spi_display_send_command(priv, 0x11);
-+	mdelay(150);
++	mdelay(10);
 +
 +	pcat_spi_display_send_command(priv, 0x3A);
 +	v8 = 0x55;
@@ -1331,8 +1331,7 @@
 +	v8 = 0x40;
 +	pcat_spi_display_send_data(priv, &v8, 1);
 +
-+	pcat_spi_display_send_command(priv, 0x29);
-+	mdelay(50);
++	mdelay(10);
 +
 +	pcat_spi_display_send_command(priv, 0x2A);
 +	pcat_spi_display_send_data(priv, col, sizeof(col));
@@ -1351,6 +1350,7 @@
 +		}
 +	}
 +
++	pcat_spi_display_send_command(priv, 0x29);
 +}
 +
 +static int pcat_spi_display_probe(struct udevice *dev)
