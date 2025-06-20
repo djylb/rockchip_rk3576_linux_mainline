@@ -37,7 +37,7 @@
 +obj-$(CONFIG_PHOTONICAT_PM) += photonicat-pm.o
 --- /dev/null
 +++ b/drivers/staging/photonicat-pm/photonicat-pm.c
-@@ -0,0 +1,1525 @@
+@@ -0,0 +1,1523 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (c) 2025, Kyosuke Nekoyashiki <supercatexpert@gmail.com>
@@ -680,8 +680,6 @@
 +		}
 +
 +		if (expect_len + 10 > remaining_size) {
-+			dev_err(&pm_data->serdev->dev,
-+				"Serial port got too much command data!");
 +			break;
 +		}
 +

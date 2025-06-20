@@ -892,7 +892,7 @@
 		reg = <1>;
 		peer-hub = <&hub_3_0>;
 		vdd-supply = <&vcc5v0_otg>;
-		/* reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>; */
+		reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
 		
 	};
 
@@ -902,7 +902,7 @@
 		reg = <2>;
 		peer-hub = <&hub_2_0>;
 		vdd-supply = <&vcc5v0_otg>;
-		/* reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>; */
+		reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
 	};
 };
 
