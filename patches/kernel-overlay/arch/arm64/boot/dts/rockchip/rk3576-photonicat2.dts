@@ -195,7 +195,7 @@
 		device-chemistry = "lithium-ion";
 		voltage-min-design-microvolt = <6800000>;
 		voltage-max-design-microvolt = <8400000>;
-		energy-full-design-microwatt-hours = <25900000>;
+		energy-full-design-microwatt-hours = <51800000>;
 		ocv-capacity-celsius = <20>;
 		ocv-capacity-table-0 =  <8344000 100>, <8184000 95>, <8070000 90>, <7980000 85>,
 					<7878000 80>, <7790000 75>, <7704000 70>, <7614000 65>,
