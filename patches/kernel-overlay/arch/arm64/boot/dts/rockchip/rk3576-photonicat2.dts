@@ -887,6 +887,8 @@
 	dr_mode = "host";
 	snps,dis_u2_susphy_quirk;
 	snps,usb2-lpm-disable;
+	pinctrl-names = "default";
+	pinctrl-0 = <&usb_hub_reset>;
 	#address-cells = <1>;
 	#size-cells = <0>;
 
@@ -896,7 +898,7 @@
 		reg = <1>;
 		peer-hub = <&hub_3_0>;
 		vdd-supply = <&vcc5v0_otg>;
-		
+		reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
 	};
 
 	/* 3.0 hub on port 4 */
@@ -905,8 +907,6 @@
 		reg = <2>;
 		peer-hub = <&hub_2_0>;
 		vdd-supply = <&vcc5v0_otg>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&usb_hub_reset>;
 		reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
 	};
 };
