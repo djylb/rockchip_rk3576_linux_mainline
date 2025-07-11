@@ -15,7 +15,7 @@ IMG_SIZE="13312"
 BOOTFS_SIZE="256"
 ROOTFS_SIZE="12288"
 
-if [ $(id -u) != "0" ]; then
+if [ "$(id -u)" != "0" ]; then
     echo "Need root privilege to create rootfs!"
     exit 1
 fi
@@ -93,7 +93,9 @@ mount --bind /proc "${TMP_MOUNT_DIR}/rootfs/proc"
 cat << EOF | chroot "${TMP_MOUNT_DIR}/rootfs"
 
 dpkg -i "/repo/${KERNEL_DEB}"
+dpkg -i /repo/linux-image-*-dbg_*_arm64.deb
 dpkg -i /repo/linux-headers-*_arm64.deb
+dpkg -i /repo/linux-libc-dev_*_arm64.deb
 dpkg -i /repo/aic8800-*.deb
 EOF
 
@@ -110,6 +112,7 @@ rmdir "${TMP_MOUNT_DIR}"
 
 echo "Making system image..."
 zcat "${BOOTFS_IMG_FILE}.gz" | dd of="${IMG_FILE}" bs=1M seek=32 conv=notrunc
-zcat "${ROOTFS_IMG_FILE}.gz" | dd of="${IMG_FILE}" bs=1M seek="$(expr 32 + ${BOOTFS_SIZE})" conv=notrunc
+SEEK="$((32 + BOOTFS_SIZE))"
+zcat "${ROOTFS_IMG_FILE}.gz" | dd of="${IMG_FILE}" bs=1M seek="${SEEK}" conv=notrunc
 gzip -f "${IMG_FILE}"
 echo "Create system image completed."
