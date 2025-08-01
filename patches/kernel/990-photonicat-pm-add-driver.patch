@@ -37,7 +37,7 @@
 +obj-$(CONFIG_PHOTONICAT_PM) += photonicat-pm.o
 --- /dev/null
 +++ b/drivers/staging/photonicat-pm/photonicat-pm.c
-@@ -0,0 +1,1523 @@
+@@ -0,0 +1,1526 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (c) 2025, Kyosuke Nekoyashiki <supercatexpert@gmail.com>
@@ -1209,6 +1209,9 @@
 +			} else {
 +				pm_data->ctl_write_buffer_used = 0;
 +			}
++
++			if(pm_data->ctl_write_buffer_used==0)
++				pm_data->ctl_write_buffer_ready = false;
 +		}
 +		mutex_unlock(&pm_data->ctl_mutex);
 +
