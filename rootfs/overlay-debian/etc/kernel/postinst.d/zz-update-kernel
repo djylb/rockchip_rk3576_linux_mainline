@@ -1,14 +1,13 @@
 #!/bin/sh -e
 
-LATEST_KERNEL_PATH="$(ls -1 -r /boot/vmlinuz-* | head -n 1)"
+LATEST_KERNEL_VERSION="$(linux-version list | linux-version sort --reverse | head -n 1)"
 
-if [ x"${LATEST_KERNEL_PATH}" = x"" ]; then
+if [ x"${LATEST_KERNEL_VERSION}" = x"" ]; then
     echo "No kernel package installed!"
     exit 1
 fi
 
-LATEST_KERNEL_BASENAME="$(basename ${LATEST_KERNEL_PATH})"
-LATEST_KERNEL_VERSION="$(echo ${LATEST_KERNEL_BASENAME} | cut -d- -f2)"
+LATEST_KERNEL_PATH="/boot/vmlinuz-${LATEST_KERNEL_VERSION}"
 LATEST_KERNEL_INITRD_PATH="/boot/initrd.img-${LATEST_KERNEL_VERSION}"
 LATEST_KERNEL_DTB_PATH="/usr/lib/linux-image-${LATEST_KERNEL_VERSION}/rockchip/rk3576-photonicat2.dtb"
 
