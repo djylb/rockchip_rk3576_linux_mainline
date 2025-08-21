@@ -871,6 +871,7 @@
 	reset-gpios = <&gpio4 RK_PB2 0>;
 	vpcie3v3-supply = <&vcc_3v3_pcie1>;
 	linux,pci-domain = <1>;
+	max-link-speed = <1>;
 	status = "okay";
 };
 
