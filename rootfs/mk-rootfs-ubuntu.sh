@@ -85,7 +85,7 @@ apt-get install -fy sudo fakeroot devscripts cmake binfmt-support dh-make \
     usbutils pciutils htop openssh-server build-essential autotools-dev \
     meson libglib2.0-dev libjson-c-dev libgpiod-dev libusb-1.0-0-dev gdb \
     p7zip-full net-tools iotop wget linux-firmware u-boot-tools initramfs-tools \
-    dkms
+    dkms gcc-14 g++-14
 
 apt-get clean
 
@@ -95,6 +95,9 @@ systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 
 rm -f /etc/resolv.conf
 ln -sf ../run/NetworkManager/resolv.conf /etc/resolv.conf
+
+update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
 
 EOF
 

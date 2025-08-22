@@ -2,13 +2,14 @@
 
 export WORKDIR="$(pwd)"
 export PATH="${PATH}:/sbin:/usr/sbin"
+DATE_TS="$(date +%Y%m%d)"
 
-IMG_FILE="deploy/rk3576-photonicat2-debian-minimal.img"
-ROOTFS_FILE="rootfs/rootfs-debian-minimal.tar.gz"
-ROOTFS_BUILD_SCRIPT="mk-rootfs-debian.sh"
+IMG_FILE="deploy/rk3576-photonicat2-mainline-ubuntu2404-minimal-${DATE_TS}.img"
+ROOTFS_FILE="rootfs/rootfs-ubuntu-minimal.tar.gz"
+ROOTFS_BUILD_SCRIPT="mk-rootfs-ubuntu.sh"
 PARTITION_SCRIPT="scripts/photonicat2-disk-parts-minimal.sfdisk"
-BOOTFS_IMG_FILE="deploy/rk3576-photonicat2-debian-minimal-bootfs.img"
-ROOTFS_IMG_FILE="deploy/rk3576-photonicat2-debian-minimal-rootfs.img"
+BOOTFS_IMG_FILE="deploy/rk3576-photonicat2-mainline-ubuntu2404-minimal-bootfs.img"
+ROOTFS_IMG_FILE="deploy/rk3576-photonicat2-mainline-ubuntu2404-minimal-rootfs.img"
 
 IMG_SIZE="7168"
 BOOTFS_SIZE="256"
@@ -91,13 +92,10 @@ mount --bind /proc "${TMP_MOUNT_DIR}/rootfs/proc"
 
 cat << EOF | chroot "${TMP_MOUNT_DIR}/rootfs"
 
-dpkg -i /repo/linux-headers-*_arm64.deb
 dpkg -i "/repo/${KERNEL_DEB}"
+dpkg -i /repo/linux-headers-*_arm64.deb
 dpkg -i /repo/aic8800-*.deb
 EOF
-
-sleep 15
-sync
 
 umount -f "${TMP_MOUNT_DIR}/rootfs/dev"
 umount -f "${TMP_MOUNT_DIR}/rootfs/proc"
