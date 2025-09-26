@@ -40,7 +40,7 @@
 		};
 	};
 
-	hdmi_sound: hdmi-sound { 
+	hdmi_sound: hdmi-sound {
 		compatible = "simple-audio-card";
 		simple-audio-card,format = "i2s";
 		simple-audio-card,mclk-fs = <128>;
@@ -119,7 +119,7 @@
 		gpio = <&gpio0 RK_PC6 GPIO_ACTIVE_HIGH>;
 		startup-delay-us = <5000>;
 		vin-supply = <&vcc_5v0_sys>;
-        };
+	};
 
 	vcc_3v3_rtc_s5: regulator-vcc-3v3-rtc-s5 {
 		compatible = "regulator-fixed";
@@ -188,7 +188,7 @@
 		vin-supply = <&vcc5v0_usb_switch>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&usb_otg_pwren>;
-        };
+	};
 
 	battery: battery {
 		compatible = "simple-battery";
@@ -242,7 +242,7 @@
 			232 233 234 235 236 237 238 239
 			240 241 242 243 244 245 246 247
 			248 249 250 251 252 253 254 255>;
-		default-brightness-level = <200>;
+		default-brightness-level = <40>;
 	};
 
 	rfkill-usb-wlan {
@@ -270,7 +270,7 @@
 		label = "rfkill-pcie-bluetooth";
 		radio-type = "bluetooth";
 		shutdown-gpios = <&gpio0 RK_PD0 GPIO_ACTIVE_HIGH>;
-        };
+	};
 
 	rfkill-usb-wwan {
 		compatible = "rfkill-gpio";
@@ -279,6 +279,18 @@
 		label = "rfkill-usb-wwan";
 		radio-type = "wwan";
 		shutdown-gpios = <&gpio0 RK_PC0 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio0 RK_PB7 GPIO_ACTIVE_LOW>;
+	};
+
+	pcat-usb-wdt {
+		compatible = "pcat-usb-watchdog";
+		pinctrl-names = "default";
+		pinctrl-0 = <&usb_hub_reset>;
+		reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
+		target-vid = <0x05e3>;
+		target-pid = <0x0610>;
+		reset-ms = <50>;
+		scan-interval = <15000>;
 	};
 };
 
@@ -286,8 +298,32 @@
 	cpu-supply = <&vdd_cpu_lit_s0>;
 };
 
+&cpu_l1 {
+	#cooling-cells = <2>;
+};
+
+&cpu_l2 {
+	#cooling-cells = <2>;
+};
+
+&cpu_l3 {
+	#cooling-cells = <2>;
+};
+
 &cpu_b0 {
 	cpu-supply = <&vdd_cpu_big_s0>;
+};
+
+&cpu_b1 {
+	#cooling-cells = <2>;
+};
+
+&cpu_b2 {
+	#cooling-cells = <2>;
+};
+
+&cpu_b3 {
+	#cooling-cells = <2>;
 };
 
 &gmac0 {
@@ -745,6 +781,12 @@
 };
 
 &pinctrl {
+	pmic {
+		pmic_pins: pmic-pins {
+			rockchip,pins = <0 RK_PA6 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+
 	hym8563 {
 		hym8563_int: hym8563-int {
 			rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_up>;
@@ -788,7 +830,7 @@
 		pcie0_pwr_en: pcie0-pwr-en {
 			rockchip,pins = <0 RK_PC7 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
-		pcie1_pwr_en: pcie1-pwr-en { 
+		pcie1_pwr_en: pcie1-pwr-en {
 			rockchip,pins = <0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 		pcie0_reset: pcie0-reset {
@@ -798,7 +840,7 @@
 			rockchip,pins = <4 RK_PB2 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
-	
+
 	rfkill {
 		rfkill_usb_wlan: rfkill-usb-wlan {
 			rockchip,pins = <1 RK_PC6 RK_FUNC_GPIO &pcfg_pull_down>;
@@ -810,7 +852,8 @@
 			rockchip,pins = <0 RK_PD0 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 		rfkill_usb_wwan: rfkill-usb-wwan {
-			rockchip,pins = <0 RK_PC0 RK_FUNC_GPIO &pcfg_pull_down>;
+			rockchip,pins = <0 RK_PC0 RK_FUNC_GPIO &pcfg_pull_down>,
+					<0 RK_PB7 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
 };
@@ -898,16 +941,16 @@
 		compatible = "usb5e3,610";
 		reg = <1>;
 		peer-hub = <&hub_3_0>;
-		vdd-supply = <&vcc5v0_otg>;
+		vdd-supply = <&vcc_3v3_s3>;
 		reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
 	};
 
-	/* 3.0 hub on port 4 */
+	/* 3.0 hub on port 2 */
 	hub_3_0: hub@2 {
 		compatible = "usb5e3,620";
 		reg = <2>;
 		peer-hub = <&hub_2_0>;
-		vdd-supply = <&vcc5v0_otg>;
+		vdd-supply = <&vcc_3v3_s3>;
 		reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
 	};
 };
@@ -931,6 +974,18 @@
 };
 
 &vop {
+	clocks = <&cru ACLK_VOP>,
+		 <&cru HCLK_VOP>,
+		 <&cru DCLK_VP0>,
+		 <&cru DCLK_VP1>,
+		 <&cru DCLK_VP2>,
+		 <&hdptxphy>;
+	clock-names = "aclk",
+		      "hclk",
+		      "dclk_vp0",
+		      "dclk_vp1",
+		      "dclk_vp2",
+		      "pll_hdmiphy0";
 	status = "okay";
 };
 
@@ -953,7 +1008,7 @@
 	spidev@0 {
 		compatible = "micron,spi-authenta";
 		reg = <0>;
-		spi-max-frequency = <6000000>; 
+		spi-max-frequency = <6000000>;
 	};
 };
 
@@ -961,7 +1016,6 @@
 	pinctrl-0 = <&i2c8m3_xfer>;
 	status = "okay";
 };
-
 
 &uart2 {
 	pinctrl-0 = <&uart2m2_xfer>;
@@ -977,6 +1031,7 @@
 		baudrate = <115200>;
 		pm-version = <2>;
 		power-gpio = <&gpio0 RK_PC1 GPIO_ACTIVE_HIGH>;
+		force-poweroff-timeout = <60>;
 
 		charger {
 			monitored-battery = <&battery>;
@@ -1012,14 +1067,14 @@
 		gpios = <RK_PB5 GPIO_ACTIVE_HIGH>;
 		output-high;
 		line-name = "wwan-airplane-ctrl";
-        };
+	};
 
-	wwan-reset {
+	/* wwan-reset {
 		gpio-hog;
 		gpios = <RK_PB7 GPIO_ACTIVE_HIGH>;
 		output-low;
 		line-name = "wwan-reset";
-	};
+	}; */
 };
 
 
