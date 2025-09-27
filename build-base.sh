@@ -12,7 +12,7 @@ KERNEL_VERSION="linux-6.12.41"
 KERNEL_ARCHIVE="${KERNEL_VERSION}.tar.xz"
 
 KERNEL_SITE="https://cdn.kernel.org/pub/linux/kernel/v6.x/${KERNEL_ARCHIVE}"
-JOBS="4"
+JOBS="$(nproc)"
 
 if [ ! -f "${ARCHIVE_DIR}/${KERNEL_ARCHIVE}" ]; then
     wget -O "${ARCHIVE_DIR}/${KERNEL_ARCHIVE}" "${KERNEL_SITE}"
@@ -39,8 +39,8 @@ export CROSS_COMPILE=aarch64-linux-gnu-
 make photonicat2-rk3576_defconfig
 sed -i "s#CONFIG_MKIMAGE_DTC_PATH=.*#CONFIG_MKIMAGE_DTC_PATH=\"${WORKDIR}/u-boot/scripts/dtc/dtc\"#g" .config
 sed -i "s#CONFIG_RADXA_IMG=.*#CONFIG_RADXA_IMG=n#g" .config
-make BL31="${WORKDIR}/rkbin/bin/rk35/rk3576_bl31_v1.12.elf" spl/u-boot-spl.bin u-boot.dtb u-boot.itb -j${JOBS}
-tools/mkimage -n rk3576 -T rksd -d "${WORKDIR}/rkbin/bin/rk35/rk3576_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin":spl/u-boot-spl.bin idbloader.img
+make BL31="${WORKDIR}/rkbin/bin/rk35/rk3576_bl31_v1.20.elf" spl/u-boot-spl.bin u-boot.dtb u-boot.itb -j${JOBS}
+tools/mkimage -n rk3576 -T rksd -d "${WORKDIR}/rkbin/bin/rk35/rk3576_ddr_lp4_2112MHz_lp5_2736MHz_v1.09.bin":spl/u-boot-spl.bin idbloader.img
 cd ..
 
 if [ ! -d "kernel" ]; then
