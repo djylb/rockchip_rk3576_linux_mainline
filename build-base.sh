@@ -9,7 +9,7 @@ mkdir -p "${ARCHIVE_DIR}"
 UBOOT_REPO="https://github.com/radxa/u-boot"
 UBOOT_BRANCH="next-dev-v2024.10"
 UBOOT_VERSION="575d1a114c66ad09e0d9d9f478c993fc243f5aec"
-KERNEL_VERSION="linux-6.12.41"
+KERNEL_VERSION="linux-6.17.1"
 
 KERNEL_ARCHIVE="${KERNEL_VERSION}.tar.xz"
 
@@ -70,7 +70,9 @@ cd "${WORKDIR}/kernel"
 export ARCH=arm64
 export CROSS_COMPILE=aarch64-linux-gnu-
 mkdir -p build deploy/modules
-make O=build photonicat2_defconfig
+if [ ! -f build/.config ]; then
+    make O=build photonicat2_defconfig
+fi
 make O=build Image -j${JOBS}
 make O=build modules -j${JOBS}
 make O=build rockchip/rk3576-photonicat2.dtb -j${JOBS}

@@ -1,24 +1,23 @@
 --- a/drivers/staging/Kconfig
 +++ b/drivers/staging/Kconfig
-@@ -66,4 +66,6 @@ source "drivers/staging/vme_user/Kconfig"
+@@ -52,4 +52,6 @@ source "drivers/staging/gpib/Kconfig"
  
  source "drivers/staging/photonicat-pm/Kconfig"
  
 +source "drivers/staging/photonicat-usb-wdt/Kconfig"
 +
  endif # STAGING
-
 --- a/drivers/staging/Makefile
 +++ b/drivers/staging/Makefile
-@@ -22,3 +22,4 @@ obj-$(CONFIG_BCM2835_VCHIQ)	+= vc04_services/
+@@ -14,4 +14,5 @@ obj-$(CONFIG_GREYBUS)		+= greybus/
+ obj-$(CONFIG_BCM2835_VCHIQ)	+= vc04_services/
  obj-$(CONFIG_XIL_AXIS_FIFO)	+= axis-fifo/
- obj-$(CONFIG_FIELDBUS_DEV)     += fieldbus/
  obj-$(CONFIG_PHOTONICAT_PM)	+= photonicat-pm/
 +obj-$(CONFIG_PHOTONICAT_USB_WDT)	+= photonicat-usb-wdt/
-
+ obj-$(CONFIG_GPIB)	 	+= gpib/
 --- /dev/null
 +++ b/drivers/staging/photonicat-usb-wdt/Kconfig
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,8 @@
 +# SPDX-License-Identifier: GPL-2.0
 +config PHOTONICAT_USB_WDT
 +	tristate "photonicat USB watchdog"
@@ -27,13 +26,10 @@
 +	help
 +	  USB watchdog for photonicat board. Unless you have the platform,
 +	  you will want to say 'N'.
-+
-
 --- /dev/null
 +++ b/drivers/staging/photonicat-usb-wdt/Makefile
 @@ -0,0 +1 @@
 +obj-$(CONFIG_PHOTONICAT_USB_WDT) += photonicat-usb-wdt.o
-
 --- /dev/null
 +++ b/drivers/staging/photonicat-usb-wdt/photonicat-usb-wdt.c
 @@ -0,0 +1,203 @@
@@ -191,7 +187,7 @@
 +
 +	msleep(1000);
 +	pcat_usb_watchdog_gpio_work(&wdt_data->gpio_work);
-+	
++
 +	/* Leave 30s for system startup. */
 +	mod_timer(&wdt_data->watchdog_timer, jiffies + msecs_to_jiffies(30000));
 +
