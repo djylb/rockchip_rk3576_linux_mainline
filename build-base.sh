@@ -4,6 +4,8 @@ set -e
 ARCHIVE_DIR="archives"
 export WORKDIR="$(pwd)"
 
+mkdir -p "${ARCHIVE_DIR}"
+
 UBOOT_REPO="https://github.com/radxa/u-boot"
 UBOOT_BRANCH="next-dev-v2024.10"
 UBOOT_VERSION="575d1a114c66ad09e0d9d9f478c993fc243f5aec"
@@ -12,7 +14,12 @@ KERNEL_VERSION="linux-6.12.41"
 KERNEL_ARCHIVE="${KERNEL_VERSION}.tar.xz"
 
 KERNEL_SITE="https://cdn.kernel.org/pub/linux/kernel/v6.x/${KERNEL_ARCHIVE}"
-JOBS="$(nproc)"
+
+if command -v nproc >/dev/null 2>&1; then
+    JOBS=$(nproc)
+else
+    JOBS=1
+fi
 
 if [ ! -f "${ARCHIVE_DIR}/${KERNEL_ARCHIVE}" ]; then
     wget -O "${ARCHIVE_DIR}/${KERNEL_ARCHIVE}" "${KERNEL_SITE}"
@@ -66,17 +73,17 @@ mkdir -p build deploy/modules
 make O=build photonicat2_defconfig
 make O=build Image -j${JOBS}
 make O=build modules -j${JOBS}
-make O=build rockchip/rk3576-photonicat2.dtb
+make O=build rockchip/rk3576-photonicat2.dtb -j${JOBS}
 rm -rf build/debian
-DPKG_FLAGS=-d make O=build bindeb-pkg
+DPKG_FLAGS=-d make O=build bindeb-pkg -j${JOBS} V=s
 cp -v build/arch/arm64/boot/Image deploy/
 cp -v build/arch/arm64/boot/dts/rockchip/rk3576-photonicat2.dtb deploy/
 rm -rf deploy/*.deb 2>/dev/null || true
 mv -v *.deb deploy/
 rm -rf "${WORKDIR}/kernel/deploy/modules" 2>/dev/null || true
 rm -rf "${WORKDIR}/kernel/deploy/headers" 2>/dev/null || true
-make O=build modules_install INSTALL_MOD_PATH="${WORKDIR}/kernel/deploy/modules" INSTALL_MOD_STRIP=1
-make O=build headers_install INSTALL_HDR_PATH="${WORKDIR}/kernel/deploy/headers/usr/src/linux"
+make -j${JOBS} O=build modules_install INSTALL_MOD_PATH="${WORKDIR}/kernel/deploy/modules" INSTALL_MOD_STRIP=1
+make -j${JOBS} O=build headers_install INSTALL_HDR_PATH="${WORKDIR}/kernel/deploy/headers/usr/src/linux"
 tar --owner=0 --group=0 --xform s:'^./':: -czf deploy/kmods.tar.gz -C "${WORKDIR}/kernel/deploy/modules" .
 tar --owner=0 --group=0 --xform s:'^./':: -czf deploy/kheaders.tar.gz -C "${WORKDIR}/kernel/deploy/headers" .
 cd "${WORKDIR}"

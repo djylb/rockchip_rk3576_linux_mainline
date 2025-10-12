@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #DEB_REPO="http://deb.debian.org/debian"
-DEB_REPO="http://ftp.cn.debian.org/debian"
+DEB_REPO="http://deb.debian.org/debian"
 DEB_DISTRO="trixie"
 PREINSTALL_PACKAGES="nano,build-essential"
 OVERLAY_DIR="overlay-debian"
