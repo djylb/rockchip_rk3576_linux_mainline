@@ -202,7 +202,7 @@
 +
 +	usb_unregister_notify(&wdt_data->usb_nb);
 +
-+	del_timer_sync(&wdt_data->watchdog_timer);
++	timer_shutdown_sync(&wdt_data->watchdog_timer);
 +	cancel_work_sync(&wdt_data->gpio_work);
 +
 +	wdt_data->reset_gpio = NULL;

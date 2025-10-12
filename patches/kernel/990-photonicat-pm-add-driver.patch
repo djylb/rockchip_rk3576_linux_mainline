@@ -766,13 +766,13 @@
 +
 +static void pcat_pm_check_work(struct kthread_work *work)
 +{
-+        struct pcat_pm_data *pm_data;
-+        u64 now;
++	struct pcat_pm_data *pm_data;
++	u64 now;
 +
-+        pm_data = container_of(work, struct pcat_pm_data, check_work);
++	pm_data = container_of(work, struct pcat_pm_data, check_work);
 +
-+        if (pm_data->work_flag)
-+	        pcat_pm_uart_write_data(pm_data, PCAT_PM_COMMAND_HEARTBEAT,
++	if (pm_data->work_flag)
++		pcat_pm_uart_write_data(pm_data, PCAT_PM_COMMAND_HEARTBEAT,
 +			NULL, 0, false, 0);
 +
 +	now = ktime_get_boottime_ns();
@@ -800,9 +800,9 @@
 +
 +static enum hrtimer_restart pcat_pm_check_timer_expired(struct hrtimer *timer)
 +{
-+        struct pcat_pm_data *pm_data;
++	struct pcat_pm_data *pm_data;
 +
-+        pm_data = container_of(timer, struct pcat_pm_data, check_timer);
++	pm_data = container_of(timer, struct pcat_pm_data, check_timer);
 +
 +	kthread_queue_work(pm_data->kworker, &pm_data->check_work);
 +
@@ -840,8 +840,8 @@
 +	sched_set_fifo(pm_data->kworker->task);
 +
 +	kthread_init_work(&pm_data->check_work, pcat_pm_check_work);
-+	hrtimer_init(&pm_data->check_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_HARD);
-+	pm_data->check_timer.function = pcat_pm_check_timer_expired;
++	hrtimer_setup(&pm_data->check_timer, pcat_pm_check_timer_expired,
++		CLOCK_MONOTONIC, HRTIMER_MODE_REL_HARD);
 +
 +	hrtimer_start(&pm_data->check_timer, ms_to_ktime(1000), HRTIMER_MODE_REL_HARD);
 +
@@ -877,7 +877,7 @@
 +	}
 +
 +	pscfg.drv_data = pm_data;
-+	pscfg.of_node = charger_node;
++	pscfg.fwnode = of_fwnode_handle(charger_node);
 +
 +	pm_data->battery_psy = power_supply_register(dev, battery_psy_desc, &pscfg);
 +	if (IS_ERR(pm_data->battery_psy)) {
@@ -1045,8 +1045,8 @@
 +}
 +
 +static int pcat_pm_hwmon_temp_mb_read(struct device *dev,
-+			      enum hwmon_sensor_types type,
-+			      u32 attr, int channel, long *val)
++				enum hwmon_sensor_types type,
++				u32 attr, int channel, long *val)
 +{
 +	struct serdev_device *serdev;
 +	struct pcat_pm_data *pm_data;
@@ -1071,8 +1071,8 @@
 +}
 +
 +static int pcat_pm_hwmon_speed_fan_read(struct device *dev,
-+			      enum hwmon_sensor_types type,
-+			      u32 attr, int channel, long *val)
++				enum hwmon_sensor_types type,
++				u32 attr, int channel, long *val)
 +{
 +	struct serdev_device *serdev;
 +	struct pcat_pm_data *pm_data;
@@ -1458,12 +1458,12 @@
 +	}
 +
 +	if (device_property_read_u32(dev, "baudrate",
-+				    &pm_data->baudrate)) {
++					&pm_data->baudrate)) {
 +		pm_data->baudrate = 115200;
 +	}
 +
 +	if (device_property_read_u32(dev, "force-poweroff-timeout",
-+				    &pm_data->force_poweroff_timeout)) {
++					&pm_data->force_poweroff_timeout)) {
 +		pm_data->force_poweroff_timeout = 0;
 +	}
 +
@@ -1475,15 +1475,15 @@
 +		dev_err(dev, "Failed to setup power GPIO!\n");
 +	}
 +
-+        ret = devm_register_sys_off_handler(dev, SYS_OFF_MODE_POWER_OFF_PREPARE,
++	ret = devm_register_sys_off_handler(dev, SYS_OFF_MODE_POWER_OFF_PREPARE,
 +		SYS_OFF_PRIO_FIRMWARE, pcat_pm_do_poweroff, pm_data);
-+        if (ret)
-+                dev_err(dev, "Cannot register poweroff handler: %d\n", ret);
++	if (ret)
++		dev_err(dev, "Cannot register poweroff handler: %d\n", ret);
 +
-+        ret = devm_register_sys_off_handler(dev, SYS_OFF_MODE_RESTART,
++	ret = devm_register_sys_off_handler(dev, SYS_OFF_MODE_RESTART,
 +		SYS_OFF_PRIO_HIGH, pcat_pm_do_restart, pm_data);
-+        if (ret)
-+                dev_err(dev, "Cannot register poweroff handler: %d\n", ret);
++	if (ret)
++		dev_err(dev, "Cannot register poweroff handler: %d\n", ret);
 +
 +	ret = pcat_pm_uart_serdev_open(pm_data);
 +	if (ret)
@@ -1534,7 +1534,7 @@
 +
 +	pcat_pm_watchdog_timeout_set(pm_data, PCAT_PM_WATCHDOG_DEFAULT_INTERVAL, 0);
 +
-+        return 0;
++	return 0;
 +}
 +#endif
 +
@@ -1552,8 +1552,8 @@
 +	.driver = {
 +		.name = "photonicat-pm",
 +		.owner = THIS_MODULE,
-+	        .of_match_table = of_match_ptr(pcat_pm_of_match),
-+	        .pm = &pcat_pm_pm_ops,
++		.of_match_table = of_match_ptr(pcat_pm_of_match),
++		.pm = &pcat_pm_pm_ops,
 +	},
 +	.probe = pcat_pm_probe,
 +};
