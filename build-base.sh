@@ -9,7 +9,7 @@ mkdir -p "${ARCHIVE_DIR}"
 UBOOT_REPO="https://github.com/radxa/u-boot"
 UBOOT_BRANCH="next-dev-v2024.10"
 UBOOT_VERSION="575d1a114c66ad09e0d9d9f478c993fc243f5aec"
-KERNEL_VERSION="linux-6.17.1"
+KERNEL_VERSION="linux-6.17.2"
 
 KERNEL_ARCHIVE="${KERNEL_VERSION}.tar.xz"
 
@@ -43,9 +43,12 @@ cd u-boot
 export ARCH=arm64
 export CROSS_COMPILE=aarch64-linux-gnu-
 
-make photonicat2-rk3576_defconfig
-sed -i "s#CONFIG_MKIMAGE_DTC_PATH=.*#CONFIG_MKIMAGE_DTC_PATH=\"${WORKDIR}/u-boot/scripts/dtc/dtc\"#g" .config
-sed -i "s#CONFIG_RADXA_IMG=.*#CONFIG_RADXA_IMG=n#g" .config
+if [ ! -f .config ]; then
+    make photonicat2-rk3576_defconfig
+    sed -i "s#CONFIG_MKIMAGE_DTC_PATH=.*#CONFIG_MKIMAGE_DTC_PATH=\"${WORKDIR}/u-boot/scripts/dtc/dtc\"#g" .config
+    sed -i "s#CONFIG_RADXA_IMG=.*#CONFIG_RADXA_IMG=n#g" .config
+fi
+
 make BL31="${WORKDIR}/rkbin/bin/rk35/rk3576_bl31_v1.20.elf" spl/u-boot-spl.bin u-boot.dtb u-boot.itb -j${JOBS}
 tools/mkimage -n rk3576 -T rksd -d "${WORKDIR}/rkbin/bin/rk35/rk3576_ddr_lp4_2112MHz_lp5_2736MHz_v1.09.bin":spl/u-boot-spl.bin idbloader.img
 cd ..
