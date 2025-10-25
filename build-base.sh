@@ -9,7 +9,7 @@ mkdir -p "${ARCHIVE_DIR}"
 UBOOT_REPO="https://github.com/radxa/u-boot"
 UBOOT_BRANCH="next-dev-v2024.10"
 UBOOT_VERSION="575d1a114c66ad09e0d9d9f478c993fc243f5aec"
-KERNEL_VERSION="linux-6.17.2"
+KERNEL_VERSION="linux-6.17.5"
 
 KERNEL_ARCHIVE="${KERNEL_VERSION}.tar.xz"
 
